@@ -1,0 +1,21 @@
+.btn{
+  margin-right: 5px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background-color: #e10808;
+}
+
+.tri{
+  text-align: center;
+  font-size: 25px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #007bff;
+  font-family: 'Arial';
+}
