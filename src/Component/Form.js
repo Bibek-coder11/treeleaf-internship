@@ -1,91 +1,132 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import './style/form.css';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import "./style/form.css";
+
+const provinces = [
+  "Province No. 1",
+  "Province No. 2",
+  "Province No. 3",
+  "Province No. 4",
+  "Province No.5",
+  "Province No. 6",
+  "Province No. 7",
+];
 
 const Form = ({ addEntry }) => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [dob, setDob] = useState('');
-  const [city, setCity] = useState('');
-  const [district, setDistrict] = useState('');
-  const [province, setProvince] = useState('');
-  const [country, setCountry] = useState('Nepal');
-  const [profilePicture, setProfilePicture] = useState(null);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phoneNumber: "",
+    dob: "",
+    city: "",
+    district: "",
+    province: "",
+    country: "Nepal",
+    profilePicture: "",
+    countries: "",
+  });
+
   const [countries, setCountries] = useState([]);
   const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    axios
-      .get('https://restcountries.com/v3.1/all')
-      .then((response) => {
-        setCountries(response.data.map((country) => country.name.common));
-      })
-      .catch((error) => console.error('Error fetching countries:', error));
-  }, []);
+  const setProfilePicture = (e) => {
+    formData['profilePicture'] = e.target.files[0]
+  }
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    validateForm(name, value);
+
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (validateForm()) {
-      const profilePictureBase64 = profilePicture ? await profilePictureToBase64(profilePicture) : null;
-      const entry = {
-        name,
-        email,
-        phoneNumber,
-        dob,
-        city,
-        district,
-        province,
-        country,
-        profilePicture: profilePictureBase64,
-      };
-      addEntry(entry);
+      if (formData["profilePicture"]) {
+        formData["profilePicture"] = await profilePictureToBase64(formData["profilePicture"]);
+      }
+
+      addEntry(formData);
       clearForm();
-      console.log(entry);
+
+      console.log(formData);
     }
   };
 
-  const validateForm = () => {
+  const validateForm = (name, value) => {
     let formErrors = {};
     let isValid = true;
 
-    if (!name) {
-      formErrors.name = 'Name is required';
-      isValid = false;
-    }
-    if (!email) {
-      formErrors.email = 'Email is required';
-      isValid = false;
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      formErrors.email = 'Email is invalid';
-      isValid = false;
-    }
-    if (!phoneNumber) {
-      formErrors.phoneNumber = 'Phone number is required';
-      isValid = false;
-    } else if (!/^\d{7,}$/.test(phoneNumber)) {
-      formErrors.phoneNumber = 'Phone number is invalid';
-      isValid = false;
-    }
-    if (profilePicture && !profilePicture.name.endsWith('.png')) {
-      formErrors.profilePicture = 'Profile picture must be a PNG file';
-      isValid = false;
+    switch (name) {
+      case "name":
+        if (!formData['name']) {
+          formErrors.name = "Name is required";
+          isValid = false;
+        } else {
+          formErrors.name = "";
+        }
+
+        break;
+
+      case "email":
+        if (!formData["email"]) {
+          formErrors.email = "Email is required";
+          isValid = false;
+        } else if (!/\S+@\S+\.\S+/.test(formData["email"])) {
+          formErrors.email = "Email is invalid";
+          isValid = false;
+        } else {
+          formErrors.email = "";
+        }
+
+        break;
+
+      case "phoneNumber":
+        if (!formData["phoneNumber"]) {
+          formErrors.phoneNumber = "Phone number is required";
+          isValid = false;
+        } else if (!/^\d{7,}$/.test(formData["phoneNumber"])) {
+          formErrors.phoneNumber = "Phone number is invalid";
+          isValid = false;
+        }
+
+        break;
+
+      case "profilePicture":
+        if (formData["profilePicture"]) {
+          formErrors.profilePicture = "Profile picture must be a PNG file";
+          isValid = false;
+        }
+        break;
+
+      default:
+        break;
     }
 
     setErrors(formErrors);
+
     return isValid;
   };
 
   const clearForm = () => {
-    setName('');
-    setEmail('');
-    setPhoneNumber('');
-    setDob('');
-    setCity('');
-    setDistrict('');
-    setProvince('');
-    setCountry('Nepal');
-    setProfilePicture(null);
+    setFormData({
+      name: "",
+      email: "",
+      phoneNumber: "",
+      dob: "",
+      city: "",
+      district: "",
+      province: "",
+      country: "Nepal",
+      profilePicture: "",
+      countries: "",
+    });
   };
 
   const profilePictureToBase64 = (file) => {
@@ -97,51 +138,96 @@ const Form = ({ addEntry }) => {
     });
   };
 
+  useEffect(() => {
+    axios
+      .get("https://restcountries.com/v3.1/all")
+      .then((response) => {
+        setCountries(response.data.map((country) => country.name.common));
+      })
+      .catch((error) => console.error("Error fetching countries:", error));
+  }, []);
+
   return (
     <div className="form-container">
-      <h2 className='form-title'>Enter Your Information</h2>
-      <form onSubmit={handleSubmit} encType='multipart/form-data'>
+      <h2 className="form-title">Enter Your Information</h2>
+      <form onSubmit={handleSubmit} encType="multipart/form-data">
         <div className="form-group">
-          <label>Name:<span className='star'>*</span> </label>
-          <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
+          <label>
+            Name:<span className="star">*</span>{" "}
+          </label>
+          <input
+            className=""
+            type="text"
+            name="name"
+            value={formData["name"]}
+            onChange={handleChange}
+            style={{
+              borderColor: errors.name ? "red" : "#ccc",
+            }}
+          />
           {errors.name && <span>{errors.name}</span>}
         </div>
         <div className="form-group">
-          <label>Email: <span className='star'>*</span></label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <label>
+            Email: <span className="star">*</span>
+          </label>
+          <input
+            name="email"
+            type="email"
+            value={formData["email"]}
+            onChange={handleChange}
+            style={{
+              borderColor: errors.name ? "red" : "#ccc",
+            }}
+          />
           {errors.email && <span>{errors.email}</span>}
         </div>
         <div className="form-group">
-          <label>Phone Number: <span className='star'>*</span></label>
-          <input type="text" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
+          <label>
+            Phone Number: <span className="star">*</span>
+          </label>
+          <input
+            name="phoneNumber"
+            type="text"
+            value={formData["phoneNumber"]}
+            onChange={handleChange}
+            style={{
+              borderColor: errors.name ? "red" : "#ccc",
+            }}
+          />
           {errors.phoneNumber && <span>{errors.phoneNumber}</span>}
         </div>
         <div className="form-group">
           <label>DOB:</label>
-          <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
+          <input name="dob" type="date" value={formData["dob"]} onChange={handleChange} />
         </div>
         <div className="form-group">
           <label>City:</label>
-          <input type="text" value={city} onChange={(e) => setCity(e.target.value)} />
+          <input name="city" type="text" value={formData["city"]} onChange={handleChange} />
         </div>
         <div className="form-group">
           <label>District:</label>
-          <input type="text" value={district} onChange={(e) => setDistrict(e.target.value)} />
+          <input
+            name="district"
+            type="text"
+            value={formData["district"]}
+            onChange={handleChange}
+          />
         </div>
         <div className="form-group">
           <label>Province:</label>
-          <select value={province} onChange={(e) => setProvince(e.target.value)}>
+          <select name="province" value={formData["province"]} onChange={handleChange}>
             <option value="">Select Province</option>
-            {['Province No. 1', 'Province No. 2', 'Province No. 3', 'Province No. 4', 'Province No.5', 'Province No. 6', 'Province No. 7'].map((prov) => (
+            {provinces.map((prov) => (
               <option key={prov} value={prov}>
-                 {prov}
+                {prov}
               </option>
             ))}
           </select>
         </div>
         <div className="form-group">
           <label>Country:</label>
-          <select value={country} onChange={(e) => setCountry(e.target.value)}>
+          <select name="country" value={formData["country"]} onChange={handleChange}>
             {countries.map((country, index) => (
               <option key={index} value={country}>
                 {country}
@@ -151,7 +237,7 @@ const Form = ({ addEntry }) => {
         </div>
         <div className="form-group">
           <label>Profile Picture:</label>
-          <input type="file" accept=".png" onChange={(e) => setProfilePicture(e.target.files[0])} />
+          <input name="profilePicture" type="file" accept=".png" onChange={(e) => setProfilePicture(e)} />
           {errors.profilePicture && <span>{errors.profilePicture}</span>}
         </div>
         <button type="submit">Save</button>
